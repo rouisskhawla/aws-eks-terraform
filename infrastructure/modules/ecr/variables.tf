@@ -1,0 +1,18 @@
+variable "ecr_repository_name" {
+  type = string
+}
+
+variable "image_tag_mutability" {
+  type    = string
+  default = "MUTABLE"
+}
+
+variable "scan_on_push" {
+  type    = bool
+  default = true
+}
+
+variable "image_expiry_days" {
+  type    = number
+  default = 14
+}

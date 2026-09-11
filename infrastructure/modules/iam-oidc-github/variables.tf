@@ -1,6 +1,6 @@
-variable "aws_region" {
+variable "role_name" {
   type    = string
-  default = "us-east-1"
+  default = "github-actions-role"
 }
 
 variable "github_repo" {
@@ -13,7 +13,6 @@ variable "github_branch" {
   default = "main"
 }
 
-variable "ecr_repository_name" {
-  type    = string
-  default = "aws-eks-terraform"
+variable "ecr_repository_arn" {
+  type = string
 }
