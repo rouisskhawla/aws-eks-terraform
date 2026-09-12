@@ -17,3 +17,8 @@ variable "ecr_repository_name" {
   type    = string
   default = "aws-eks-terraform"
 }
+
+variable "state_bucket_name" {
+  type    = string
+  default = "aws-eks-terraform-state"
+}
