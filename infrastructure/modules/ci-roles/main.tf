@@ -1,4 +1,4 @@
-# Terrraform Plan Read Only Role for GitHub Actions
+# Terrraform Plan Read Only Role for GitHub Actions 
 
 resource "aws_iam_role" "terraform_plan_readonly" {
   name = "terraform-plan-readonly"
