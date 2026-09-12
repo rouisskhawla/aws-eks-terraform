@@ -1,9 +1,6 @@
 name: Terraform Workflow
 
 on:
-  pull_request:
-    paths:
-      - 'infrastructure/**'
   push:
     branches: [main]
     paths:
@@ -14,12 +11,10 @@ env:
 
 jobs:
   plan:
-    if: github.event_name == 'pull_request'
     runs-on: [self-hosted, terraform]
     permissions:
       id-token: write
       contents: read
-      pull-requests: write   # lets the workflow comment the plan on the PR
 
     steps:
       - uses: actions/checkout@v4
@@ -27,10 +22,11 @@ jobs:
       - name: Configure AWS credentials (read-only role)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::558073272056:role/terraform-plan-readonly
+          role-to-assume: ${{ vars.TERRAFORM_PLAN_ROLE_ARN }}
           aws-region: us-east-1
 
-      - uses: hashicorp/setup-terraform@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.6.6"
 
@@ -47,7 +43,7 @@ jobs:
         run: terraform plan -no-color
 
   apply:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: plan
     runs-on: [self-hosted, terraform]
     environment: infra-apply
     permissions:
@@ -60,10 +56,11 @@ jobs:
       - name: Configure AWS credentials (apply role)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::558073272056:role/terraform-apply
+          role-to-assume: ${{ vars.TERRAFORM_APPLY_ROLE_ARN }}
           aws-region: us-east-1
 
-      - uses: hashicorp/setup-terraform@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.6.6"
 
