@@ -2,38 +2,44 @@ name: Terraform Workflow
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
-      - 'infrastructure/**'
+      - "infrastructure/**"
 
 env:
   TF_WORKING_DIR: infrastructure
+  TF_VERSION: "1.6.6"
+  AWS_REGION: us-east-1
 
 jobs:
   plan:
+    name: Terraform Plan
     runs-on: [self-hosted, terraform]
+
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Configure AWS credentials (read-only role)
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.TERRAFORM_PLAN_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
           role-skip-session-tagging: true
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
         with:
-          terraform_version: "1.6.6"
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init
+        run: terraform init -input=false
 
       - name: Terraform Validate
         working-directory: ${{ env.TF_WORKING_DIR }}
@@ -41,35 +47,53 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform plan -no-color
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: ${{ env.TF_WORKING_DIR }}/tfplan
+          retention-days: 1
 
   apply:
+    name: Terraform Apply
     needs: plan
     runs-on: [self-hosted, terraform]
-    environment: infra-apply
+
+    environment:
+      name: infra-apply
+
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Configure AWS credentials (apply role)
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: ${{ env.TF_WORKING_DIR }}
+
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.TERRAFORM_APPLY_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
           role-skip-session-tagging: true
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
         with:
-          terraform_version: "1.6.6"
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init
+        run: terraform init -input=false
 
       - name: Terraform Apply
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform apply -auto-approve
+        run: terraform apply -input=false -auto-approve tfplan
