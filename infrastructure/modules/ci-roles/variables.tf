@@ -14,3 +14,7 @@ variable "github_branch" {
 variable "state_bucket_arn" {
   type = string
 }
+
+variable "environment_name" {
+  type = string
+}

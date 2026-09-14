@@ -13,6 +13,11 @@ variable "github_branch" {
   default = "main"
 }
 
+variable "environment_name" {
+  type = string
+  default = "infra-apply"
+}
+
 variable "ecr_repository_name" {
   type    = string
   default = "aws-eks-terraform"

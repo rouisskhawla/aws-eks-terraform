@@ -98,7 +98,7 @@ resource "aws_iam_role" "terraform_apply" {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
           }
           StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:environment:infra-apply"
+            "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:environment:${var.environment_name}"
           }
         }
       }
