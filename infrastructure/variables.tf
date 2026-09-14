@@ -14,7 +14,7 @@ variable "github_branch" {
 }
 
 variable "environment_name" {
-  type = string
+  type    = string
   default = "infra-apply"
 }
 
