@@ -5,7 +5,7 @@ variable "role_name" {
 
 variable "github_repo" {
   type    = string
-  default = "rouisskhawla/aws-eks-terraform"
+  default = "rouisskhawla@38538299/aws-eks-terraform@1364055098"
 }
 
 variable "github_branch" {
