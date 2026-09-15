@@ -27,3 +27,13 @@ variable "state_bucket_name" {
   type    = string
   default = "aws-eks-terraform-state"
 }
+
+variable "aws_availability_zones" {
+  type    = list(string)
+  default = ["us-east-1a", "us-east-1b"]
+}
+
+variable "cluster_name" {
+  type    = string
+  default = "aws-eks-terraform"
+}
