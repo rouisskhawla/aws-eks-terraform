@@ -210,8 +210,7 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
           "ecr:DeleteLifecyclePolicy",
           "ecr:ListTagsForResource",
           "ecr:TagResource",
-          "ecr:UntagResource",
-
+          "ecr:UntagResource"
         ]
         Resource = "*"
       },
@@ -228,6 +227,27 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
           var.state_bucket_arn,
           "${var.state_bucket_arn}/*",
         ]
+      },
+      {
+        Sid    = "EC2"
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateVpc",
+          "ec2:DeleteVpc",
+          "ec2:CreateSubnet",
+          "ec2:DeleteSubnet",
+          "ec2:CreateInternetGateway",
+          "ec2:AttachInternetGateway",
+          "ec2:CreateNatGateway",
+          "ec2:AllocateAddress",
+          "ec2:ReleaseAddress",
+          "ec2:CreateRouteTable",
+          "ec2:CreateRoute",
+          "ec2:AssociateRouteTable",
+          "ec2:DisassociateRouteTable",
+          "ec2:CreateTags"
+        ]
+        Resource = "*"
       }
     ]
   })
