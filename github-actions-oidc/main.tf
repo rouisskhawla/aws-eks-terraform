@@ -141,6 +141,14 @@ resource "aws_iam_role_policy" "terraform_plan_readonly_policy" {
           "s3:DeleteObject"
         ]
         Resource = "${var.state_bucket_arn}/terraform.tfstate.tflock"
+      },
+      {
+        Sid    = "EC2ReadOnly"
+        Effect = "Allow"
+        Action = [
+          "ec2:Describe*"
+        ]
+        Resource = "*"
       }
     ]
   })
@@ -234,18 +242,28 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
         Action = [
           "ec2:CreateVpc",
           "ec2:DeleteVpc",
+          "ec2:Describe*",
+          "ec2:ModifyVpcAttribute",
           "ec2:CreateSubnet",
           "ec2:DeleteSubnet",
+          "ec2:ModifySubnetAttribute",
           "ec2:CreateInternetGateway",
+          "ec2:DeleteInternetGateway",
           "ec2:AttachInternetGateway",
+          "ec2:DetachInternetGateway",
           "ec2:CreateNatGateway",
+          "ec2:DeleteNatGateway",
           "ec2:AllocateAddress",
           "ec2:ReleaseAddress",
           "ec2:CreateRouteTable",
+          "ec2:DeleteRouteTable",
           "ec2:CreateRoute",
+          "ec2:ReplaceRoute",
+          "ec2:DeleteRoute",
           "ec2:AssociateRouteTable",
           "ec2:DisassociateRouteTable",
-          "ec2:CreateTags"
+          "ec2:CreateTags",
+          "ec2:DeleteTags",
         ]
         Resource = "*"
       }
