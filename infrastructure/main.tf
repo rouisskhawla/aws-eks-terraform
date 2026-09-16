@@ -8,3 +8,13 @@ module "vpc" {
   aws_availability_zones = var.aws_availability_zones
   cluster_name           = var.cluster_name
 }
+
+module "eks" {
+  source       = "./modules/eks"
+  cluster_name = var.cluster_name
+  subnet_ids = concat(
+    module.vpc.private_subnets_ids,
+    module.vpc.public_subnets_ids
+  )
+  private_subnet_ids = module.vpc.private_subnets_ids
+}
