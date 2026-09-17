@@ -139,7 +139,7 @@ resource "aws_iam_role_policy" "terraform_plan_readonly_policy" {
           "s3:PutObject",
           "s3:DeleteObject"
         ]
-        Resource = "${var.state_bucket_arn}/terraform.tfstate.tflock"
+        Resource = "${var.state_bucket_arn}/*.tflock"
       },
       {
         Sid    = "EC2ReadOnly"
@@ -222,7 +222,8 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
           "iam:CreateOpenIDConnectProvider",
           "iam:DeleteOpenIDConnectProvider",
           "iam:AttachRolePolicy",
-          "iam:DetachRolePolicy"
+          "iam:DetachRolePolicy",
+          "iam:UpdateAssumeRolePolicy"
         ]
         Resource = "*"
       },

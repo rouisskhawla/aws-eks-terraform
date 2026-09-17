@@ -48,7 +48,7 @@ and created inline policies for each service :
             ],
             "Resource": [
                 "arn:aws:s3:::aws-eks-terraform-state-bucket",
-                "arn:aws:s3:::aws-eks-terraform-state-bucket/*"
+                "arn:aws:s3:::aws-eks-terraform-state-bucket/*",
             ]
         }
     ]
