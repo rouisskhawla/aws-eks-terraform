@@ -1,15 +1,18 @@
 # IAM OIDC provider for GitHub Actions
 
+data "tls_certificate" "github" {
+  url = "https://token.actions.githubusercontent.com/.well-known/openid-configuration"
+}
+
 resource "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
 
   client_id_list = [
-    "sts.amazonaws.com",
+    "sts.amazonaws.com"
   ]
 
-  thumbprint_list = ["ffffffffffffffffffffffffffffffffffffffff"]
+  thumbprint_list = [data.tls_certificate.github.certificates[0].sha1_fingerprint]
 }
-
 
 resource "aws_iam_role" "github_actions_role" {
   name = var.role_name
@@ -43,7 +46,7 @@ resource "aws_iam_role_policy" "github_actions_policy" {
         Sid    = "AllowECRAccess"
         Effect = "Allow"
         Action = [
-          "ecr:GetAuthorizationToken",
+          "ecr:GetAuthorizationToken"
         ]
         Resource = "*"
       },
@@ -55,7 +58,7 @@ resource "aws_iam_role_policy" "github_actions_policy" {
           "ecr:PutImage",
           "ecr:InitiateLayerUpload",
           "ecr:UploadLayerPart",
-          "ecr:CompleteLayerUpload",
+          "ecr:CompleteLayerUpload"
         ]
         Resource = var.ecr_repository_arn
       }
@@ -101,12 +104,8 @@ resource "aws_iam_role_policy" "terraform_plan_readonly_policy" {
         Sid    = "IAMReadOnly"
         Effect = "Allow"
         Action = [
-          "iam:GetRole",
-          "iam:GetRolePolicy",
-          "iam:ListRolePolicies",
-          "iam:ListAttachedRolePolicies",
-          "iam:ListInstanceProfilesForRole",
-          "iam:GetOpenIDConnectProvider",
+          "iam:Get*",
+          "iam:List*"
         ]
         Resource = "*"
       },
@@ -114,9 +113,9 @@ resource "aws_iam_role_policy" "terraform_plan_readonly_policy" {
         Sid    = "ECRReadOnly"
         Effect = "Allow"
         Action = [
-          "ecr:DescribeRepositories",
-          "ecr:GetLifecyclePolicy",
-          "ecr:ListTagsForResource",
+          "ecr:Describe*",
+          "ecr:Get*",
+          "ecr:List*"
         ]
         Resource = "*"
       },
@@ -125,7 +124,7 @@ resource "aws_iam_role_policy" "terraform_plan_readonly_policy" {
         Effect = "Allow"
         Action = [
           "s3:GetObject",
-          "s3:ListBucket",
+          "s3:ListBucket"
         ]
         Resource = [
           var.state_bucket_arn,
@@ -149,7 +148,17 @@ resource "aws_iam_role_policy" "terraform_plan_readonly_policy" {
           "ec2:Describe*"
         ]
         Resource = "*"
-      }
+      },
+      {
+        Sid    = "EKSReadOnly"
+        Effect = "Allow"
+        Action = [
+          "eks:Describe*",
+          "eks:List*"
+        ],
+        Resource = "*"
+      },
+
     ]
   })
 }
@@ -188,21 +197,32 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
     Version = "2012-10-17"
     Statement = [
       {
+        Sid    = "ReadOnlyServices"
+        Effect = "Allow"
+        Action = [
+          "ec2:Describe*",
+          "eks:Describe*",
+          "eks:List*",
+          "iam:Get*",
+          "ecr:Get*",
+          "iam:List*",
+          "ecr:Describe*",
+          "ecr:List*"
+        ]
+        Resource = "*"
+      },
+      {
         Sid    = "IAM"
         Effect = "Allow"
         Action = [
           "iam:CreateRole",
           "iam:DeleteRole",
-          "iam:GetRole",
           "iam:PutRolePolicy",
-          "iam:GetRolePolicy",
           "iam:DeleteRolePolicy",
-          "iam:ListRolePolicies",
-          "iam:ListAttachedRolePolicies",
-          "iam:ListInstanceProfilesForRole",
           "iam:CreateOpenIDConnectProvider",
           "iam:DeleteOpenIDConnectProvider",
-          "iam:GetOpenIDConnectProvider",
+          "iam:AttachRolePolicy",
+          "iam:DetachRolePolicy"
         ]
         Resource = "*"
       },
@@ -212,11 +232,8 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
         Action = [
           "ecr:CreateRepository",
           "ecr:DeleteRepository",
-          "ecr:DescribeRepositories",
           "ecr:PutLifecyclePolicy",
-          "ecr:GetLifecyclePolicy",
           "ecr:DeleteLifecyclePolicy",
-          "ecr:ListTagsForResource",
           "ecr:TagResource",
           "ecr:UntagResource"
         ]
@@ -233,7 +250,7 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
         ]
         Resource = [
           var.state_bucket_arn,
-          "${var.state_bucket_arn}/*",
+          "${var.state_bucket_arn}/*"
         ]
       },
       {
@@ -242,7 +259,6 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
         Action = [
           "ec2:CreateVpc",
           "ec2:DeleteVpc",
-          "ec2:Describe*",
           "ec2:ModifyVpcAttribute",
           "ec2:CreateSubnet",
           "ec2:DeleteSubnet",
@@ -264,8 +280,59 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
           "ec2:DisassociateRouteTable",
           "ec2:CreateTags",
           "ec2:DeleteTags",
+          "ec2:CreateSecurityGroup",
+          "ec2:DeleteSecurityGroup",
+          "ec2:AuthorizeSecurityGroupIngress",
+          "ec2:AuthorizeSecurityGroupEgress",
+          "ec2:RevokeSecurityGroupIngress",
+          "ec2:RevokeSecurityGroupEgress"
         ]
         Resource = "*"
+      },
+      {
+        Sid    = "EKS"
+        Effect = "Allow"
+        Action = [
+          "eks:CreateCluster",
+          "eks:DeleteCluster",
+          "eks:UpdateClusterConfig",
+          "eks:UpdateClusterVersion",
+          "eks:CreateNodegroup",
+          "eks:DeleteNodegroup",
+          "eks:UpdateNodegroupConfig",
+          "eks:UpdateNodegroupVersion",
+          "eks:TagResource",
+          "eks:UntagResource"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "PassEKSRoles"
+        Effect = "Allow"
+        Action = "iam:PassRole"
+        Resource = [
+          "${var.eks_node_role_arn}",
+          "${var.eks_cluster_role_arn}"
+        ],
+        Condition = {
+          StringEquals = {
+            "iam:PassedToService" = "eks.amazonaws.com"
+          }
+        }
+      },
+      {
+        Sid      = "AllowCreateEKSServiceLinkedRoles"
+        Effect   = "Allow"
+        Action   = "iam:CreateServiceLinkedRole"
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "iam:AWSServiceName" = [
+              "eks.amazonaws.com",
+              "eks-nodegroup.amazonaws.com"
+            ]
+          }
+        }
       }
     ]
   })

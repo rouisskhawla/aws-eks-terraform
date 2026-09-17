@@ -32,3 +32,13 @@ variable "state_bucket_arn" {
   type    = string
   default = "arn:aws:s3:::aws-eks-terraform-state-bucket"
 }
+
+variable "eks_node_role_arn" {
+  type    = string
+  default = "arn:aws:iam::558073272056:role/aws-eks-terraform-eks-node-role"
+}
+
+variable "eks_cluster_role_arn" {
+  type    = string
+  default = "arn:aws:iam::558073272056:role/aws-eks-terraform-eks-cluster-role"
+}
