@@ -152,3 +152,27 @@ and created inline policies for each service :
         }
     ]
 }
+
+
+
+# GitHub Fine-Grained PAT
+
+Create a **Fine-grained personal access token** with:
+
+**Repository access**
+
+* Only select repositories
+* `rouisskhawla/aws-eks-terraform`
+
+**Repository permissions**
+
+* **Actions:** Read and write
+* **Environments:** Read and write
+* **Variables:** Read and write
+* **Metadata:** Read-only (automatically required)
+
+Then copy the token and set it locally:
+
+```bash
+export GITHUB_TOKEN="github_pat_..."
+```
