@@ -1,0 +1,82 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+
+env:
+  TF_INFRASTRUCTURE_DIR: terraform/infrastructure
+  TF_ALB_CONTROLLER_IRSA_DIR: terraform/alb-controller-irsa
+  TF_VERSION: "1.14.8"
+  AWS_REGION: us-east-1
+
+jobs:
+  destroy-alb-controller:
+    name: Destroy ALB Controller
+    runs-on: [self-hosted, terraform]
+
+    permissions:
+      id-token: write
+      contents: read
+
+    environment: infra-apply
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.TERRAFORM_APPLY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-skip-session-tagging: true
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_ALB_CONTROLLER_IRSA_DIR }}
+        run: terraform init
+
+      - name: Terraform Destroy ALB Controller
+        working-directory: ${{ env.TF_ALB_CONTROLLER_IRSA_DIR }}
+        run: terraform destroy -auto-approve
+
+  destroy-infrastructure:
+    name: Destroy Infrastructure
+    needs: destroy-alb-controller
+    if: needs.destroy-alb-controller.result == 'success'
+
+    runs-on: [self-hosted, terraform]
+
+    permissions:
+      id-token: write
+      contents: read
+
+    environment: infra-apply
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.TERRAFORM_APPLY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-skip-session-tagging: true
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_INFRASTRUCTURE_DIR }}
+        run: terraform init
+
+      - name: Terraform Destroy Infrastructure
+        working-directory: ${{ env.TF_INFRASTRUCTURE_DIR }}
+        run: terraform destroy -auto-approve
