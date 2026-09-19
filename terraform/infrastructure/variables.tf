@@ -34,7 +34,6 @@ variable "aws_availability_zones" {
 }
 
 variable "cluster_name" {
-  description = "Aws cluster name"
   type        = string
   default     = "aws-eks-terraform"
 }
