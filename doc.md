@@ -5,7 +5,7 @@ aws configure
 aws sts get-caller-identity 
 
 # Manually create s3 bucket for terraform state file
-aws s3 mb s3://amzn-s3-demo-bucket
+aws s3 mb s3://aws-eks-terraform-state-bucket
 
 # Init terraform backend 
 terraform init
@@ -175,4 +175,61 @@ Then copy the token and set it locally:
 
 ```bash
 export GITHUB_TOKEN="github_pat_..."
+```
+
+# Cluster Health
+
+## Verify that AWS CLI is authenticated first:
+
+```bash
+aws sts get-caller-identity
+```
+
+## Use AWS CLI to configure `kubectl` access, then use `kubectl`.
+
+```bash
+aws eks update-kubeconfig --region us-east-1 --name aws-eks-terraform
+```
+
+## Verify if the Cluster is Ready :
+
+```bash
+kubectl get nodes 
+```
+
+## Check running pods for all namespaces:
+
+```bash
+kubectl get pods -A
+```
+
+## For the AWS Load Balancer Controller specifically:
+
+```bash
+kubectl get pods -n kube-system
+```
+
+## And verify the EKS cluster:
+
+```bash
+aws eks describe-cluster --region us-east-1 --name aws-eks-terraform
+```
+
+## Verify the controller deployment nd pods:
+
+```bash
+kubectl get deployment -n kube-system aws-load-balancer-controller
+kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+```
+
+## Verify the ServiceAccount / IRSA
+
+```bash
+kubectl get serviceaccount aws-load-balancer-controller -n kube-system -o yaml
+```
+
+## Check controller logs
+
+```bash
+kubectl logs -n kube-system deployment/aws-load-balancer-controller
 ```

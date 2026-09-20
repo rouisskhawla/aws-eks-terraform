@@ -59,6 +59,11 @@ resource "aws_eks_cluster" "eks_cluster" {
   vpc_config {
     subnet_ids = var.subnet_ids
   }
+
+  access_config {
+    authentication_mode                         = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
+  }
 }
 
 data "tls_certificate" "eks" {
@@ -95,4 +100,34 @@ resource "aws_eks_node_group" "eks_node_grp" {
     aws_iam_role_policy_attachment.eks_cni_policy_attachment,
     aws_iam_role_policy_attachment.ec2_container_registry_policy_attachment,
   ]
+}
+
+resource "aws_eks_access_entry" "plan_readonly" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  principal_arn = var.terraform_plan_readonly_role_arn
+}
+
+resource "aws_eks_access_policy_association" "plan_readonly_view" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  principal_arn = var.terraform_plan_readonly_role_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
+}
+
+resource "aws_eks_access_entry" "terraform_apply" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  principal_arn = var.terraform_apply_role_arn
+}
+
+resource "aws_eks_access_policy_association" "terraform_apply_admin" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  principal_arn = var.terraform_apply_role_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
 }

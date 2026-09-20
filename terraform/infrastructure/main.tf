@@ -16,5 +16,7 @@ module "eks" {
     module.vpc.private_subnets_ids,
     module.vpc.public_subnets_ids
   )
-  private_subnet_ids = module.vpc.private_subnets_ids
+  private_subnet_ids               = module.vpc.private_subnets_ids
+  terraform_plan_readonly_role_arn = local.terraform_plan_readonly_role_arn
+  terraform_apply_role_arn         = local.terraform_apply_role_arn
 }

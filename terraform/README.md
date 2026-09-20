@@ -86,3 +86,14 @@ Both use `sts:AssumeRoleWithWebIdentity` and IAM OIDC providers, but they are tw
 - `plan` jobs use `terraform-plan-readonly`, read-only, runs unattended
 - `apply` jobs use `terraform-apply`, gated behind the `infra-apply` GitHub Environment, requires manual reviewer approval before touching AWS
 - Role ARNs are written into GitHub repo/environment variables automatically by `github-actions-oidc`'s own `apply`, no manual copy-pasting of ARNs anywhere in the pipeline
+
+## Destroy workflow
+
+The destroy workflow provides a controlled way to tear down the AWS infrastructure when the environment is no longer needed, without affecting the GitHub Actions authentication layer.
+
+It is manually triggered using `workflow_dispatch` and destroys resources in reverse dependency order: 
+
+* `alb-controller-irsa/` is destroyed first while the EKS cluster is still available.
+* `infrastructure/` is destroyed only after the ALB controller destroy succeeds.
+* `github-actions-oidc/` is **not** destroyed, so CI/CD authentication remains available for future rebuilds.
+* Uses the same GitHub OIDC authentication and `terraform-apply` role as the normal pipeline.

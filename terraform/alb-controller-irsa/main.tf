@@ -65,6 +65,10 @@ resource "helm_release" "aws_load_balancer_controller" {
     {
       name  = "vpcId"
       value = local.vpc_id
+    },
+    {
+      name  = "replicaCount"
+      value = "1"
     }
   ]
 

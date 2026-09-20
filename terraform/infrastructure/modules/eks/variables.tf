@@ -14,3 +14,11 @@ variable "eks_version" {
   type    = string
   default = "1.35"
 }
+
+variable "terraform_plan_readonly_role_arn" {
+  type = string
+}
+
+variable "terraform_apply_role_arn" {
+  type = string
+}

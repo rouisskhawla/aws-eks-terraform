@@ -286,7 +286,8 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
           "ec2:AuthorizeSecurityGroupIngress",
           "ec2:AuthorizeSecurityGroupEgress",
           "ec2:RevokeSecurityGroupIngress",
-          "ec2:RevokeSecurityGroupEgress"
+          "ec2:RevokeSecurityGroupEgress",
+          "ec2:DisassociateAddress"
         ]
         Resource = "*"
       },
@@ -334,6 +335,17 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
             ]
           }
         }
+      },
+      {
+        Sid    = "EKSAccessEntries"
+        Effect = "Allow"
+        Action = [
+          "eks:CreateAccessEntry",
+          "eks:DeleteAccessEntry",
+          "eks:AssociateAccessPolicy",
+          "eks:DisassociateAccessPolicy",
+        ]
+        Resource = "*"
       }
     ]
   })
