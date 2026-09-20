@@ -11,7 +11,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Task API",
-    description="Simple CRUD API used as the workload for the AWS EKS GitOps platform project.",
+    description="Simple CRUD API used as the workload for the AWS EKS GitOps platform project",
     version="0.1.0",
 )
 

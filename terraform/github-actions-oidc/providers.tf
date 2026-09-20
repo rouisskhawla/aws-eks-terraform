@@ -9,6 +9,11 @@ terraform {
       source  = "hashicorp/github"
       version = "6.13.0"
     }
+
+    tls = {
+      source  = "hashicorp/tls"
+      version = "4.4.1"
+    }
   }
 }
 

@@ -10,3 +10,9 @@ resource "github_actions_environment_variable" "apply_role_arn" {
   variable_name = "TERRAFORM_APPLY_ROLE_ARN"
   value         = aws_iam_role.terraform_apply.arn
 }
+
+resource "github_actions_variable" "github_actions_role_arn" {
+  repository    = "aws-eks-terraform"
+  variable_name = "ECR_PUSH_ROLE_ARN"
+  value         = aws_iam_role.github_actions_role.arn
+}
