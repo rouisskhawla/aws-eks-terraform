@@ -158,7 +158,16 @@ resource "aws_iam_role_policy" "terraform_plan_readonly_policy" {
         ],
         Resource = "*"
       },
-
+      {
+        Sid    = "RDSReadOnly"
+        Effect = "Allow"
+        Action = [
+          "rds:Describe*",
+          "rds:List*",
+          "secretsmanager:Describe*",
+        ],
+        Resource = "*"
+      }
     ]
   })
 }

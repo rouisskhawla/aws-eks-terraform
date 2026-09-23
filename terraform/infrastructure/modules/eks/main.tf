@@ -115,7 +115,7 @@ resource "aws_eks_access_policy_association" "plan_readonly_view" {
   access_scope {
     type = "cluster"
   }
-  
+
   depends_on = [aws_eks_access_entry.plan_readonly]
 }
 

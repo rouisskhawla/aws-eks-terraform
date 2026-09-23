@@ -38,3 +38,7 @@ output "oidc_provider_arn" {
 output "cluster_name" {
   value = module.eks.cluster_name
 }
+
+output "rds_secret_arn" {
+  value = module.rds.master_user_secret_arn
+}
