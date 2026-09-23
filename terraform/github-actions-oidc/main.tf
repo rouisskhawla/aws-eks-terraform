@@ -369,6 +369,15 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
           "secretsmanager:TagResource",
         ]
         Resource = "*"
+      },
+      {
+        Sid    = "KMSForSecretsManager"
+        Effect = "Allow"
+        Action = [
+          "kms:CreateGrant",
+          "kms:DescribeKey",
+        ]
+        Resource = "*"
       }
     ]
   })

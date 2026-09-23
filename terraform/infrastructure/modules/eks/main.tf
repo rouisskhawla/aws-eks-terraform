@@ -115,6 +115,8 @@ resource "aws_eks_access_policy_association" "plan_readonly_view" {
   access_scope {
     type = "cluster"
   }
+  
+  depends_on = [aws_eks_access_entry.plan_readonly]
 }
 
 resource "aws_eks_access_entry" "terraform_apply" {
@@ -130,4 +132,6 @@ resource "aws_eks_access_policy_association" "terraform_apply_admin" {
   access_scope {
     type = "cluster"
   }
+
+  depends_on = [aws_eks_access_entry.terraform_apply]
 }

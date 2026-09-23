@@ -14,12 +14,14 @@ terraform init
 terraform fmt --recursive 
 
 # Policies for iam user 'terraform-iam-user'
-Added these permission to iam user in order to be able to Apply both infrastructure and GitHub-actions-oidc with iam user locally 
+Added these permission to iam user in order to be able to Apply infrastructure, alb-controller-irsa and github-actions-oidc with iam user locally 
 
-AWS managed:
+**AWS managed**:
 AmazonEC2ContainerRegistryFullAccess
 AmazonEC2FullAccess
 AmazonEKSClusterPolicy
+AmazonRDSFullAccess
+SecretsManagerReadWrite
 
 and created inline policies for each service :
 
@@ -38,17 +40,19 @@ and created inline policies for each service :
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "Statement1",
+            "Sid": "BackendS3",
             "Effect": "Allow",
             "Action": [
                 "s3:GetObject",
                 "s3:ListBucket",
                 "s3:PutObject",
-                "s3:DeleteObject"
+                "s3:DeleteObject",
+                "s3:CreateBucket",
+                "s3:DeleteBucket"
             ],
             "Resource": [
                 "arn:aws:s3:::aws-eks-terraform-state-bucket",
-                "arn:aws:s3:::aws-eks-terraform-state-bucket/*",
+                "arn:aws:s3:::aws-eks-terraform-state-bucket/*"
             ]
         }
     ]
@@ -63,19 +67,15 @@ and created inline policies for each service :
             "Action": [
                 "iam:CreateRole",
                 "iam:DeleteRole",
-                "iam:GetRole",
+                "iam:Get*",
                 "iam:UpdateRole",
                 "iam:TagRole",
                 "iam:UntagRole",
                 "iam:AttachRolePolicy",
                 "iam:DetachRolePolicy",
-                "iam:ListAttachedRolePolicies",
-                "iam:ListRolePolicies",
+                "iam:List*",
                 "iam:PutRolePolicy",
-                "iam:ListInstanceProfilesForRole",
                 "iam:DeleteServiceLinkedRole",
-                "iam:GetServiceLinkedRoleDeletionStatus",
-                "iam:GetRolePolicy",
                 "iam:DeleteRolePolicy",
                 "iam:UpdateAssumeRolePolicy"
             ],
@@ -87,7 +87,6 @@ and created inline policies for each service :
             "Action": [
                 "iam:CreateOpenIDConnectProvider",
                 "iam:DeleteOpenIDConnectProvider",
-                "iam:GetOpenIDConnectProvider",
                 "iam:TagOpenIDConnectProvider",
                 "iam:UpdateOpenIDConnectProviderThumbprint",
                 "iam:UntagOpenIDConnectProvider"
@@ -119,7 +118,8 @@ and created inline policies for each service :
                 "StringEquals": {
                     "iam:AWSServiceName": [
                         "eks.amazonaws.com",
-						"eks-nodegroup.amazonaws.com"
+                        "eks-nodegroup.amazonaws.com",
+                        "rds.amazonaws.com"
                     ]
                 }
             }
@@ -135,24 +135,26 @@ and created inline policies for each service :
             "Action": [
                 "eks:CreateCluster",
                 "eks:DeleteCluster",
-                "eks:DescribeCluster",
+                "eks:Describe*",
                 "eks:UpdateClusterConfig",
                 "eks:UpdateClusterVersion",
                 "eks:CreateNodegroup",
                 "eks:DeleteNodegroup",
-                "eks:DescribeNodegroup",
                 "eks:UpdateNodegroupConfig",
                 "eks:UpdateNodegroupVersion",
-                "eks:ListClusters",
-                "eks:ListNodegroups",
                 "eks:TagResource",
-                "eks:UntagResource"
+                "eks:UntagResource",
+                "eks:List*",
+                "eks:AssociateAccessPolicy",
+                "eks:DisassociateAccessPolicy",
+                "eks:CreateAccessEntry",
+                "eks:DeleteAccessEntry",
+                "eks:UpdateAccessEntry"
             ],
             "Resource": "*"
         }
     ]
 }
-
 
 
 # GitHub Fine-Grained PAT
