@@ -20,3 +20,10 @@ module "eks" {
   terraform_plan_readonly_role_arn = local.terraform_plan_readonly_role_arn
   terraform_apply_role_arn         = local.terraform_apply_role_arn
 }
+
+module "rds" {
+  source             = "./modules/rds"
+  vpc_id             = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnets_ids
+  eks_node_sg_id     = module.eks.cluster_security_group_id
+}

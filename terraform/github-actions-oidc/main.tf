@@ -207,7 +207,11 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
           "ecr:Get*",
           "iam:List*",
           "ecr:Describe*",
-          "ecr:List*"
+          "ecr:List*",
+          "rds:Describe*",
+          "rds:List*",
+          "secretsmanager:Describe*",
+
         ]
         Resource = "*"
       },
@@ -323,7 +327,7 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
         }
       },
       {
-        Sid      = "AllowCreateEKSServiceLinkedRoles"
+        Sid      = "AllowCreateServiceLinkedRoles"
         Effect   = "Allow"
         Action   = "iam:CreateServiceLinkedRole"
         Resource = "*"
@@ -331,7 +335,8 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
           StringEquals = {
             "iam:AWSServiceName" = [
               "eks.amazonaws.com",
-              "eks-nodegroup.amazonaws.com"
+              "eks-nodegroup.amazonaws.com",
+              "rds.amazonaws.com"
             ]
           }
         }
@@ -344,6 +349,24 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
           "eks:DeleteAccessEntry",
           "eks:AssociateAccessPolicy",
           "eks:DisassociateAccessPolicy",
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "RDS"
+        Effect = "Allow"
+        Action = [
+          "rds:CreateDBInstance",
+          "rds:DeleteDBInstance",
+          "rds:ModifyDBInstance",
+          "rds:CreateDBSubnetGroup",
+          "rds:DeleteDBSubnetGroup",
+          "rds:AddTagsToResource",
+          "secretsmanager:CreateSecret",
+          "secretsmanager:DeleteSecret",
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:PutSecretValue",
+          "secretsmanager:TagResource",
         ]
         Resource = "*"
       }
