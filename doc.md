@@ -235,3 +235,11 @@ kubectl get serviceaccount aws-load-balancer-controller -n kube-system -o yaml
 ```bash
 kubectl logs -n kube-system deployment/aws-load-balancer-controller
 ```
+
+# ESO
+terraform\external-secrets\main.tf
+helm_release.aws_eso
+
+atomic = true: if the Helm installation fails, Helm automatically rolls it back instead of leaving a partially installed release behind.
+wait = true: Terraform waits for the Kubernetes resources to become ready before considering the Helm release successful.
+timeout = 600: gives Helm up to 10 minutes for the operation instead of timing out too quickly.

@@ -181,6 +181,4 @@ jobs:
       - working-directory: ${{ env.TF_EXTERNAL_SECRETS_DIR }}
         run: terraform init
       - working-directory: ${{ env.TF_EXTERNAL_SECRETS_DIR }}
-        run: terraform apply -target=helm_release.aws_eso -auto-approve
-      - working-directory: ${{ env.TF_EXTERNAL_SECRETS_DIR }}
         run: terraform apply -auto-approve
