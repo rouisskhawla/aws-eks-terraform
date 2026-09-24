@@ -34,6 +34,12 @@ resource "aws_iam_role_policy" "eso_irsa_role_policy" {
           "secretsmanager:DescribeSecret"
         ]
         Resource = local.rds_secret_arn
+      },
+      {
+        Sid      = "KMSDecryptForSecret"
+        Effect   = "Allow"
+        Action   = "kms:Decrypt"
+        Resource = "*"
       }
     ]
   })
@@ -127,12 +133,17 @@ resource "kubernetes_manifest" "external_secret" {
       target = {
         name           = "rds-credentials"
         creationPolicy = "Owner"
+        template = {
+          engineVersion = "v2"
+          data = {
+            DATABASE_URL = "postgresql://{{ .username }}:{{ .password }}@${local.db_endpoint}/${local.db_name}"
+          }
+        }
       }
 
       data = [
         {
           secretKey = "username"
-
           remoteRef = {
             key      = local.rds_secret_arn
             property = "username"
@@ -140,7 +151,6 @@ resource "kubernetes_manifest" "external_secret" {
         },
         {
           secretKey = "password"
-
           remoteRef = {
             key      = local.rds_secret_arn
             property = "password"

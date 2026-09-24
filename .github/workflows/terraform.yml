@@ -7,10 +7,12 @@ on:
     paths:
       - 'terraform/infrastructure/**'
       - 'terraform/alb-controller-irsa/**'
+      - 'terraform/external-secrets/**'
 
 env:
   TF_INFRASTRUCTURE_DIR: terraform/infrastructure
   TF_ALB_CONTROLLER_IRSA_DIR: terraform/alb-controller-irsa
+  TF_EXTERNAL_SECRETS_DIR: terraform/external-secrets
   TF_VERSION: "1.14.8"
   AWS_REGION: us-east-1      
 
@@ -20,6 +22,7 @@ jobs:
     outputs:
       infra_changed: ${{ steps.filter.outputs.infra }}
       alb_changed: ${{ steps.filter.outputs.alb }}
+      eso_changed: ${{ steps.filter.outputs.eso }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v4
@@ -30,6 +33,8 @@ jobs:
               - 'terraform/infrastructure/**'
             alb:
               - 'terraform/alb-controller-irsa/**'
+            eso:
+              - 'terraform/external-secrets/**'
 
   infrastructure-plan:
     needs: detect-changes
@@ -125,4 +130,57 @@ jobs:
       - working-directory: ${{ env.TF_ALB_CONTROLLER_IRSA_DIR }}
         run: terraform init
       - working-directory: ${{ env.TF_ALB_CONTROLLER_IRSA_DIR }}
+        run: terraform apply -auto-approve
+
+  external-secrets-plan:
+    needs: [detect-changes, alb-controller-apply]
+    if: |
+      always() &&
+      needs.detect-changes.outputs.eso_changed == 'true' &&
+      (needs.alb-controller-apply.result == 'success' || needs.alb-controller-apply.result == 'skipped')
+    runs-on: [self-hosted, terraform]
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.TERRAFORM_PLAN_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - working-directory: ${{ env.TF_EXTERNAL_SECRETS_DIR }}
+        run: terraform init
+      - working-directory: ${{ env.TF_EXTERNAL_SECRETS_DIR }}
+        run: terraform validate
+      - working-directory: ${{ env.TF_EXTERNAL_SECRETS_DIR }}
+        run: terraform plan -no-color
+
+  external-secrets-apply:
+    needs: [detect-changes, alb-controller-apply, external-secrets-plan]
+    if: |
+      always() &&
+      needs.detect-changes.outputs.eso_changed == 'true' &&
+      needs.external-secrets-plan.result == 'success'
+    runs-on: [self-hosted, terraform]
+    environment: infra-apply
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.TERRAFORM_APPLY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - working-directory: ${{ env.TF_EXTERNAL_SECRETS_DIR }}
+        run: terraform init
+      - working-directory: ${{ env.TF_EXTERNAL_SECRETS_DIR }}
+        run: terraform apply -target=helm_release.aws_eso -auto-approve
+      - working-directory: ${{ env.TF_EXTERNAL_SECRETS_DIR }}
         run: terraform apply -auto-approve

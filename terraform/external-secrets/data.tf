@@ -15,4 +15,6 @@ locals {
   oidc_provider_arn      = data.terraform_remote_state.infrastructure.outputs.oidc_provider_arn
   oidc_provider_url      = data.terraform_remote_state.infrastructure.outputs.oidc_provider_url
   rds_secret_arn         = data.terraform_remote_state.infrastructure.outputs.rds_secret_arn
+  db_endpoint            = data.terraform_remote_state.infrastructure.outputs.db_endpoint
+  db_name                = data.terraform_remote_state.infrastructure.outputs.db_name
 }
