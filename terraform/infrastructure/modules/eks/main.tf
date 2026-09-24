@@ -127,7 +127,7 @@ resource "aws_eks_access_entry" "terraform_apply" {
 resource "aws_eks_access_policy_association" "terraform_apply_admin" {
   cluster_name  = aws_eks_cluster.eks_cluster.name
   principal_arn = var.terraform_apply_role_arn
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminViewPolicy"
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
   access_scope {
     type = "cluster"

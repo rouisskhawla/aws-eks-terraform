@@ -59,7 +59,10 @@ resource "helm_release" "aws_eso" {
   name      = "external-secrets"
   chart     = "${path.module}/charts/external-secrets.tgz"
   namespace = "kube-system"
-
+  atomic = true
+  wait   = true
+  timeout = 600
+  
   set = [
     {
       name  = "serviceAccount.create"
