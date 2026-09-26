@@ -5,14 +5,32 @@ on:
     branches: [main]
     paths:
       - 'application/**'
+      - 'k8s-manifests/**'
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  build-and-push:
+  detect-changes:
     runs-on: [self-hosted, terraform]
+    outputs:
+      app_changed: ${{ steps.filter.outputs.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            app:
+              - 'application/**'
+
+  build-and-push:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.app_changed == 'true'
+    runs-on: [self-hosted, terraform]
+    outputs:
+      image_tag: ${{ steps.set-tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
 
@@ -31,7 +49,45 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: aws-eks-terraform
-          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          docker build -t $REGISTRY/$REPOSITORY:${{ github.sha }} .
+          docker push $REGISTRY/$REPOSITORY:${{ github.sha }}
+
+      - id: set-tag
+        run: echo "tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+  deploy-to-eks:
+    needs: [detect-changes, build-and-push]
+    if: |
+      always() &&
+      (needs.build-and-push.result == 'success' || needs.build-and-push.result == 'skipped')
+    runs-on: [self-hosted, terraform]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.APP_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Deploy to EKS
+        working-directory: k8s-manifests
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name aws-eks-terraform
+
+          if [ "${{ needs.detect-changes.outputs.app_changed }}" = "true" ]; then
+            IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
+            echo "App changed — deploying new image: $IMAGE_TAG"
+          else
+            IMAGE_TAG=$(kubectl get deployment task-api-deploy \
+              -o jsonpath='{.spec.template.spec.containers[0].image}' \
+              | awk -F: '{print $NF}')
+            echo "Manifests-only change — keeping current image: $IMAGE_TAG"
+          fi
+
+          sed -i "s|__IMAGE_TAG__|$IMAGE_TAG|g" deployment.yaml
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
+          kubectl apply -f ingress.yaml
+          kubectl rollout status deployment/task-api-deploy --timeout=120s
