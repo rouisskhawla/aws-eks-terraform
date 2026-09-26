@@ -357,7 +357,10 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
           "eks:UpdateNodegroupConfig",
           "eks:UpdateNodegroupVersion",
           "eks:TagResource",
-          "eks:UntagResource"
+          "eks:UntagResource",
+          "eks:CreateAddon",
+          "eks:DeleteAddon",
+          "eks:UpdateAddon",
         ]
         Resource = "*"
       },

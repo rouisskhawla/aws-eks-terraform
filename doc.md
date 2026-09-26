@@ -237,9 +237,32 @@ kubectl logs -n kube-system deployment/aws-load-balancer-controller
 ```
 
 # ESO
+
 terraform\external-secrets\main.tf
 helm_release.aws_eso
 
 atomic = true: if the Helm installation fails, Helm automatically rolls it back instead of leaving a partially installed release behind.
 wait = true: Terraform waits for the Kubernetes resources to become ready before considering the Helm release successful.
 timeout = 600: gives Helm up to 10 minutes for the operation instead of timing out too quickly.
+
+CRD-backed resource (ClusterSecretStore/ExternalSecret) dependency
+
+terraform apply -target=helm_release.aws_eso -auto-approve
+
+
+# AgroCD
+
+1. Download the ArgoCD Helm chart
+
+Check for the current version to pin
+
+helm repo add argo https://argoproj.github.io/argo-helm && helm search repo argo/argo-cd
+returns
+NAME            CHART VERSION   APP VERSION     DESCRIPTION                                       
+argo/argo-cd    10.9.2          v3.5.3          A Helm chart for Argo CD, a declarative, GitOps...
+
+mkdir -p terraform/argocd/charts
+curl -L https://argoproj.github.io/argo-helm/argo-cd-10.9.2.tgz \
+  -o terraform/argocd/charts/argo-cd.tgz
+
+terraform apply -target=helm_release.argocd -auto-approve

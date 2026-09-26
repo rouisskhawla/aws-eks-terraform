@@ -47,9 +47,9 @@ resource "kubernetes_manifest" "task_api_application" {
       project = "default"
 
       source = {
-        repoURL       = var.repo_url
-        argetRevision = var.branch_name
-        path          = "k8s-manifests"
+        repoURL        = var.repo_url
+        targetRevision = var.branch_name
+        path           = "k8s-manifests"
       }
 
       destination = {
