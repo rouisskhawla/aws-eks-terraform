@@ -28,9 +28,3 @@ resource "aws_ecr_lifecycle_policy" "ecr_repo_policy" {
     ]
   })
 }
-
-resource "github_actions_variable" "ecr_repository_uri" {
-  repository    = "aws-eks-terraform"
-  variable_name = "ECR_REPOSITORY_URI"
-  value         = aws_ecr_repository.ecr_repo.repository_url
-}

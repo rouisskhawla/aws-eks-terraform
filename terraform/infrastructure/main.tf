@@ -3,6 +3,12 @@ module "ecr" {
   ecr_repository_name = var.ecr_repository_name
 }
 
+resource "github_actions_variable" "ecr_repository_uri" {
+  repository    = "aws-eks-terraform"
+  variable_name = "ECR_REPOSITORY_URI"
+  value         = module.ecr.repository_url
+}
+
 module "vpc" {
   source                 = "./modules/vpc"
   aws_availability_zones = var.aws_availability_zones
