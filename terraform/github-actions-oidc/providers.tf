@@ -23,5 +23,4 @@ provider "aws" {
 
 provider "github" {
   owner = "rouisskhawla"
-
 }

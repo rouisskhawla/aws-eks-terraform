@@ -74,20 +74,30 @@ jobs:
       - name: Deploy to EKS
         working-directory: k8s-manifests
         run: |
-          aws eks update-kubeconfig --region us-east-1 --name aws-eks-terraform
+          set -e
+
+          aws eks update-kubeconfig \
+            --region us-east-1 \
+            --name aws-eks-terraform
 
           if [ "${{ needs.detect-changes.outputs.app_changed }}" = "true" ]; then
             IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
-            echo "App changed — deploying new image: $IMAGE_TAG"
           else
             IMAGE_TAG=$(kubectl get deployment task-api-deploy \
               -o jsonpath='{.spec.template.spec.containers[0].image}' \
               | awk -F: '{print $NF}')
-            echo "Manifests-only change — keeping current image: $IMAGE_TAG"
           fi
 
+          if [ -z "$IMAGE_TAG" ]; then
+            echo "ERROR: IMAGE_TAG is empty"
+            exit 1
+          fi
+
+          sed -i "s|__ECR_REPOSITORY_URI__|${{ vars.ECR_REPOSITORY_URI }}|g" deployment.yaml
           sed -i "s|__IMAGE_TAG__|$IMAGE_TAG|g" deployment.yaml
+
           kubectl apply -f deployment.yaml
           kubectl apply -f service.yaml
           kubectl apply -f ingress.yaml
+
           kubectl rollout status deployment/task-api-deploy --timeout=120s

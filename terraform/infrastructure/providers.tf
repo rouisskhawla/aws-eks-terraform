@@ -8,9 +8,18 @@ terraform {
       source  = "hashicorp/tls"
       version = "4.4.1"
     }
+
+    github = {
+      source  = "hashicorp/github"
+      version = "6.13.0"
+    }
   }
 }
 
 provider "aws" {
   region = var.aws_region
+}
+
+provider "github" {
+  owner = "rouisskhawla"
 }
