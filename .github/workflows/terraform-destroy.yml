@@ -15,11 +15,9 @@ jobs:
   destroy-argocd:
     name: Destroy ArgoCD 
     runs-on: [self-hosted, terraform]
-
     permissions:
       id-token: write
       contents: read
-
     environment: infra-apply
 
     steps:
@@ -51,11 +49,9 @@ jobs:
     if: needs.destroy-argocd.result == 'success'
     name: Destroy ESO 
     runs-on: [self-hosted, terraform]
-
     permissions:
       id-token: write
       contents: read
-
     environment: infra-apply
 
     steps:
@@ -87,11 +83,9 @@ jobs:
     needs: destroy-external-secrets
     if: needs.destroy-external-secrets.result == 'success'
     runs-on: [self-hosted, terraform]
-
     permissions:
       id-token: write
       contents: read
-
     environment: infra-apply
 
     steps:
@@ -122,13 +116,12 @@ jobs:
     name: Destroy Infrastructure
     needs: destroy-alb-controller
     if: needs.destroy-alb-controller.result == 'success'
-
     runs-on: [self-hosted, terraform]
-
+    env:
+      GITHUB_TOKEN: ${{ secrets.TF_GITHUB_PAT }}
     permissions:
       id-token: write
       contents: read
-
     environment: infra-apply
 
     steps:

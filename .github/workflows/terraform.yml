@@ -45,6 +45,8 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.infra_changed == 'true'
     runs-on: [self-hosted, terraform]
+    env:
+      GITHUB_TOKEN: ${{ secrets.TF_GITHUB_PAT }}
     permissions:
       id-token: write
       contents: read
@@ -68,6 +70,8 @@ jobs:
     needs: [detect-changes, infrastructure-plan]
     if: needs.detect-changes.outputs.infra_changed == 'true'
     runs-on: [self-hosted, terraform]
+    env:
+      GITHUB_TOKEN: ${{ secrets.TF_GITHUB_PAT }}
     environment: infra-apply
     permissions:
       id-token: write
