@@ -3,6 +3,7 @@ resource "helm_release" "argocd" {
   chart            = "${path.module}/charts/argo-cd.tgz"
   namespace        = "argocd"
   create_namespace = true
+  timeout = 900
 
   set = [
     {
