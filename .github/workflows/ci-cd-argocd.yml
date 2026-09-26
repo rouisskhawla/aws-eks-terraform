@@ -1,11 +1,15 @@
-name: CI CD - Direct kubectl (legacy, manual demo only)
+name: CI/CD Pipeline with  ArgoCD 
 
 on:
-  workflow_dispatch: 
+  push:
+    branches: [main]
+    paths:
+      - 'application/**'
+      - 'k8s-manifests/**'
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 jobs:
   detect-changes:
@@ -52,48 +56,27 @@ jobs:
       - id: set-tag
         run: echo "tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
-  deploy-to-eks:
+  update-manifest:
     needs: [detect-changes, build-and-push]
-    if: |
-      always() &&
-      (needs.build-and-push.result == 'success' || needs.build-and-push.result == 'skipped')
+    if: needs.detect-changes.outputs.app_changed == 'true'
     runs-on: [self-hosted, terraform]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ vars.APP_DEPLOY_ROLE_ARN }}
-          aws-region: us-east-1
+          ref: main
 
-      - name: Deploy to EKS
+      - name: Update image tag and commit
         working-directory: k8s-manifests
+        env:
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
         run: |
-          set -e
-
-          aws eks update-kubeconfig \
-            --region us-east-1 \
-            --name aws-eks-terraform
-
-          if [ "${{ needs.detect-changes.outputs.app_changed }}" = "true" ]; then
-            IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          sed -i -E "s|aws-eks-terraform:[a-zA-Z0-9_-]+|aws-eks-terraform:${IMAGE_TAG}|g" deployment.yaml
+          if git diff --quiet deployment.yaml; then
+            echo "No change to commit"
           else
-            IMAGE_TAG=$(kubectl get deployment task-api-deploy \
-              -o jsonpath='{.spec.template.spec.containers[0].image}' \
-              | awk -F: '{print $NF}')
+            git add deployment.yaml
+            git commit -m "chore: deploy image ${IMAGE_TAG}"
+            git push origin main
           fi
-
-          if [ -z "$IMAGE_TAG" ]; then
-            echo "ERROR: IMAGE_TAG is empty"
-            exit 1
-          fi
-
-          sed -i "s|__ECR_REPOSITORY_URI__|${{ vars.ECR_REPOSITORY_URI }}|g" deployment.yaml
-          sed -i "s|__IMAGE_TAG__|$IMAGE_TAG|g" deployment.yaml
-
-          kubectl apply -f deployment.yaml
-          kubectl apply -f service.yaml
-          kubectl apply -f ingress.yaml
-
-          kubectl rollout status deployment/task-api-deploy --timeout=120s
