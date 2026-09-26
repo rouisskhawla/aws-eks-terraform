@@ -22,3 +22,7 @@ variable "terraform_plan_readonly_role_arn" {
 variable "terraform_apply_role_arn" {
   type = string
 }
+
+variable "deploy_role_arn" {
+  type = string
+}

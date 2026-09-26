@@ -14,8 +14,8 @@ resource "aws_iam_openid_connect_provider" "github" {
   thumbprint_list = [data.tls_certificate.github.certificates[0].sha1_fingerprint]
 }
 
-resource "aws_iam_role" "github_actions_role" {
-  name = var.role_name
+resource "aws_iam_role" "github_actions_ecr_role" {
+  name = "${var.role_name}-ecr-push"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -35,9 +35,9 @@ resource "aws_iam_role" "github_actions_role" {
   })
 }
 
-resource "aws_iam_role_policy" "github_actions_policy" {
+resource "aws_iam_role_policy" "github_actions_ecr_policy" {
   name = "${var.role_name}-ecr-push"
-  role = aws_iam_role.github_actions_role.id
+  role = aws_iam_role.github_actions_ecr_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -61,6 +61,46 @@ resource "aws_iam_role_policy" "github_actions_policy" {
           "ecr:CompleteLayerUpload"
         ]
         Resource = var.ecr_repository_arn
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role" "github_actions_deploy_role" {
+  name = "${var.role_name}-deploy-eks"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.github.arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringLike = {
+        "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:ref:refs/heads/${var.github_branch}" }
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "github_actions_deploy_policy" {
+  name = "${var.role_name}-deploy-eks"
+  role = aws_iam_role.github_actions_deploy_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowEKSAccess"
+        Effect = "Allow"
+        Action = [
+          "eks:DescribeCluster"
+        ]
+        Resource = "*"
       }
     ]
   })
