@@ -42,3 +42,8 @@ variable "eks_cluster_role_arn" {
   type    = string
   default = "arn:aws:iam::558073272056:role/aws-eks-terraform-eks-cluster-role"
 }
+
+variable "cloudwatch_observability_role_arn" {
+  type    = string
+  default = "arn:aws:iam::558073272056:role/aws-eks-terraform-cloudwatch-observability-irsa"
+}

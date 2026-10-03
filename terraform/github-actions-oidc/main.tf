@@ -260,6 +260,10 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
           "rds:Describe*",
           "rds:List*",
           "secretsmanager:Describe*",
+          "cloudwatch:Describe*",
+          "cloudwatch:List*",
+          "sns:List*",
+          "sns:Get*",
 
         ]
         Resource = "*"
@@ -370,7 +374,8 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
         Action = "iam:PassRole"
         Resource = [
           "${var.eks_node_role_arn}",
-          "${var.eks_cluster_role_arn}"
+          "${var.eks_cluster_role_arn}",
+          "${var.cloudwatch_observability_role_arn}"
         ],
         Condition = {
           StringEquals = {
@@ -430,7 +435,23 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
           "kms:DescribeKey",
         ]
         Resource = "*"
-      }
+      },
+      {
+        "Sid": "CloudWatchAlarmsAndSNS",
+        "Effect": "Allow",
+        "Action": [
+            "cloudwatch:PutMetricAlarm",
+            "cloudwatch:DeleteAlarms",
+            "sns:CreateTopic",
+            "sns:DeleteTopic",
+            "sns:Subscribe",
+            "sns:Unsubscribe",
+            "sns:SetTopicAttributes",
+            "sns:TagResource",
+            "sns:UntagResource"
+        ],
+        "Resource": "*"
+    }
     ]
   })
 }

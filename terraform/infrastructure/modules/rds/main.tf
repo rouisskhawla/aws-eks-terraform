@@ -28,8 +28,8 @@ resource "aws_db_instance" "task_api_db" {
   db_name                     = "taskdb"
   engine                      = "postgres"
   engine_version              = "16"
-  instance_class              = "db.t4g.micro"
-  storage_type                = "gp3"
+  instance_class              = "db.t3.micro"
+  storage_type                = "gp2"
   username                    = "taskapi"
   db_subnet_group_name        = aws_db_subnet_group.task_api_db_subnet_group.name
   vpc_security_group_ids      = [aws_security_group.task_api_rds_sg.id]

@@ -167,3 +167,50 @@ resource "aws_eks_addon" "vpc_cni" {
 
   resolve_conflicts_on_update = "OVERWRITE"
 }
+
+## CloudWatch Container Insights
+
+resource "aws_iam_role" "cloudwatch_observability_irsa" {
+  name = "${var.cluster_name}-cloudwatch-observability-irsa"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.eks_oidc_provider.arn
+        }
+        Condition = {
+          StringEquals = {
+            "${replace(aws_iam_openid_connect_provider.eks_oidc_provider.url, "https://", "")}:aud" = "sts.amazonaws.com"
+          }
+          StringLike = {
+            "${replace(aws_iam_openid_connect_provider.eks_oidc_provider.url, "https://", "")}:sub" = "system:serviceaccount:amazon-cloudwatch:cloudwatch-agent"
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "cloudwatch_observability_policy" {
+  role       = aws_iam_role.cloudwatch_observability_irsa.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
+resource "aws_eks_addon" "cloudwatch_observability" {
+  cluster_name             = aws_eks_cluster.eks_cluster.name
+  addon_name               = "amazon-cloudwatch-observability"
+  service_account_role_arn = aws_iam_role.cloudwatch_observability_irsa.arn
+
+  configuration_values = jsonencode({
+    containerLogs = {
+      enabled = false
+    }
+  })
+
+  resolve_conflicts_on_update = "OVERWRITE"
+
+  depends_on = [aws_eks_node_group.eks_node_grp]
+}

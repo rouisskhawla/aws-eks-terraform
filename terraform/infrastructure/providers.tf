@@ -10,7 +10,7 @@ terraform {
     }
 
     github = {
-      source  = "hashicorp/github"
+      source  = "integrations/github"
       version = "6.13.0"
     }
   }

@@ -34,3 +34,10 @@ module "rds" {
   private_subnet_ids = module.vpc.private_subnets_ids
   eks_node_sg_id     = module.eks.cluster_security_group_id
 }
+
+module "alarms" {
+  source          = "./modules/alarms"
+  alarm_email     = var.alarm_email
+  rds_instance_id = module.rds.db_instance_id
+  cluster_name    = var.cluster_name
+}

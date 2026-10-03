@@ -266,3 +266,16 @@ curl -L https://argoproj.github.io/argo-helm/argo-cd-10.9.2.tgz \
   -o terraform/argocd/charts/argo-cd.tgz
 
 terraform apply -target=helm_release.argocd -auto-approve
+
+
+2. Forward to the HTTP port:
+
+kubectl port-forward svc/argocd-server -n argocd 8080:80
+
+3. Get the password
+
+In a new terminal tab (keep the port-forward running in the other one):
+
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
+Or 
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 --decode

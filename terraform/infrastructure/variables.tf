@@ -1,6 +1,6 @@
 variable "aws_region" {
-  type    = string
-  default = "us-east-1"
+  type        = string
+  default     = "us-east-1"
   description = "AWS Region"
 }
 
@@ -37,4 +37,9 @@ variable "aws_availability_zones" {
 variable "cluster_name" {
   type    = string
   default = "aws-eks-terraform"
+}
+
+variable "alarm_email" {
+  type    = string
+  default = "rouis.khawla09@gmail.com"
 }
