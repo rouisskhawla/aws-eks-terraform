@@ -207,6 +207,17 @@ resource "aws_iam_role_policy" "terraform_plan_readonly_policy" {
           "secretsmanager:Describe*",
         ],
         Resource = "*"
+      },
+      {
+        Sid    = "SNSReadOnly"
+        Effect = "Allow"
+        Action = [
+          "cloudwatch:Describe*",
+          "cloudwatch:List*",
+          "sns:List*",
+          "sns:Get*",
+        ],
+        Resource = "*"
       }
     ]
   })
@@ -437,21 +448,21 @@ resource "aws_iam_role_policy" "terraform_apply_policy" {
         Resource = "*"
       },
       {
-        "Sid": "CloudWatchAlarmsAndSNS",
-        "Effect": "Allow",
-        "Action": [
-            "cloudwatch:PutMetricAlarm",
-            "cloudwatch:DeleteAlarms",
-            "sns:CreateTopic",
-            "sns:DeleteTopic",
-            "sns:Subscribe",
-            "sns:Unsubscribe",
-            "sns:SetTopicAttributes",
-            "sns:TagResource",
-            "sns:UntagResource"
+        "Sid" : "CloudWatchAlarmsAndSNS",
+        "Effect" : "Allow",
+        "Action" : [
+          "cloudwatch:PutMetricAlarm",
+          "cloudwatch:DeleteAlarms",
+          "sns:CreateTopic",
+          "sns:DeleteTopic",
+          "sns:Subscribe",
+          "sns:Unsubscribe",
+          "sns:SetTopicAttributes",
+          "sns:TagResource",
+          "sns:UntagResource"
         ],
-        "Resource": "*"
-    }
+        "Resource" : "*"
+      }
     ]
   })
 }
