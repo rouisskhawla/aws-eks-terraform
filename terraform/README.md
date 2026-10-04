@@ -36,6 +36,19 @@ Manages:
 
 State key: `github-actions-oidc/terraform.tfstate`
 
+
+Role ARNs published automatically as repository variables:
+
+![GitHub repo variables showing published role ARNs](../docs/github-repo-variables.png)
+
+The `TF_GITHUB_PAT` secret this root's own apply needs (to call the GitHub API and write those variables):
+
+![GitHub repo secrets](../docs/github-repo-secrets.png)
+
+The `infra-apply` environment, gating every privileged apply job behind manual reviewer approval:
+
+![GitHub repo environment with required reviewers](../docs/github-repo-environment.png)
+
 ### 2. `infrastructure/`, the actual AWS infrastructure
 
 Applied via the GitHub Actions pipeline: `plan` runs automatically on push to `main`, `apply` waits for manual approval via the `infra-apply` environment.
@@ -48,6 +61,12 @@ Manages:
 - **CloudWatch Observability addon** (IRSA) + three alarms (RDS CPU, RDS free storage, pod restart count) wired to an SNS topic with an email subscription
 
 State key: `infrastructure/terraform.tfstate`
+
+![EKS cluster overview in the AWS console](../docs/eks-cluster.png)
+
+The Access Entries replacing the legacy `aws-auth` ConfigMap — each principal mapped to exactly the policy its job needs:
+
+![EKS Access Entries for terraform-plan-readonly, terraform-apply, and github-actions-role-deploy-eks](../docs/eks-access-entries.png)
 
 ### 3. `alb-controller-irsa/`, AWS Load Balancer Controller
 
@@ -116,6 +135,8 @@ Two distinct OIDC trust relationships are in play, easy to get confused since th
 Both use `sts:AssumeRoleWithWebIdentity` against an IAM OIDC provider, but they are two separate providers, trusting two separate token issuers, for two separate purposes.
 
 ## CI/CD pipeline summary (Terraform side)
+
+![Terraform CI pipeline graph across all four CI-managed roots](../docs/ci-cd-terraform-ci-graph.png)
 
 - Trigger: push to `main`, path-filtered per root
 - `plan` jobs use `terraform-plan-readonly`, read-only, runs automatically

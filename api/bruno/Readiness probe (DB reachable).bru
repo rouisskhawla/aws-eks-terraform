@@ -1,0 +1,22 @@
+meta {
+  name: Readiness probe (DB reachable)
+  type: http
+  seq: 7
+}
+
+get {
+  url: http://{{alb_dns}}/ready
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "Test task",
+    "description": "checking it works"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

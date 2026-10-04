@@ -1,0 +1,22 @@
+meta {
+  name: Create a task
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://{{alb_dns}}/tasks/
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "Test task",
+    "description": "checking it works"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

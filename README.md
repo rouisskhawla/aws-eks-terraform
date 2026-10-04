@@ -57,6 +57,26 @@ docker-compose up -d
 
 Runs the app against a local Postgres container, useful for iterating on the application itself without touching any cloud infrastructure.
 
+
+### Testing the live API
+
+A [Bruno](https://www.usebruno.com/) collection in [`api/bruno/`](./api/bruno/) covers every endpoint (`/health`, `/ready`, and the `/tasks` CRUD routes). Bruno stores collections as plain text files, so this is committed to the repo and versioned alongside the code, no separate export/import step, unlike Postman.
+
+To use it against the live cluster:
+
+1. Get the ALB's public DNS name (provisioned by the AWS Load Balancer Controller once the Ingress exists):
+   ```bash
+   kubectl get ingress task-api-ingress
+   ```
+2. In Bruno, open the collection and set the `alb_dns` environment variable to that value (no scheme, no trailing slash, e.g. `k8s-default-taskapii-xxxx.us-east-1.elb.amazonaws.com`)
+3. Every request in the collection is already built against `http://{{alb_dns}}/...`, so it starts working immediately once that one variable is set
+
+Since the ALB's DNS name changes if the load balancer is ever recreated (a full `infrastructure` rebuild, for instance), `alb_dns` is kept as an environment variable rather than hardcoded into each request, update it once per rebuild rather than editing every request.
+
+Everything running before sending any requests:
+
+![kubectl get pods -A showing all workloads running](docs/kubectl-status.png)
+
 ## CI/CD, two parallel paths, on purpose
 
 Both paths exist deliberately, as a working comparison between the GitOps way and the direct way.
@@ -69,11 +89,19 @@ Both paths exist deliberately, as a working comparison between the GitOps way an
 2. `build-and-push`, builds the Docker image, pushes to ECR (only if `application/` changed)
 3. `update-manifest`, rewrites the image tag in `k8s-manifests/deployment.yaml` with `sed`, commits that change back to the repo
 
+![GitOps CI/CD pipeline graph](docs/ci-cd-argocd-graph.png)
+
 GitHub Actions never touches the cluster directly. ArgoCD, running inside the cluster, notices the manifest changed and shows the Application as `OutOfSync`. A human reviews the diff and clicks **Sync**. CI's job is to produce a tagged artifact and record the desired state in Git; deployment is a separate, deliberate, auditable action.
+
+| Before sync | After sync |
+|---|---|
+| ![ArgoCD showing OutOfSync](docs/argocd-outofsync.png) | ![ArgoCD showing Synced](docs/argocd-synced.png) |
 
 ### Path B: Direct kubectl (legacy, kept for comparison)
 
 `.github/workflows/ci-cd.yml`, `workflow_dispatch` manual only (never runs automatically):
+
+![Direct kubectl pipeline graph](docs/ci-cd-kubectl-graph.png)
 
 Same build-and-push, followed by an actual `kubectl apply` + `kubectl rollout status` from the GitHub Actions runner itself, using a narrowly scoped role (namespace scoped `AmazonEKSEditPolicy` access entry, `default` namespace only).
 

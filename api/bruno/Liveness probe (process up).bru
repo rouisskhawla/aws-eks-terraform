@@ -1,0 +1,22 @@
+meta {
+  name: Liveness probe (process up)
+  type: http
+  seq: 8
+}
+
+get {
+  url: http://{{alb_dns}}/health
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "Test task",
+    "description": "checking it works"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,22 @@
+meta {
+  name: List tasks
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://{{alb_dns}}/tasks/
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "Test task",
+    "description": "checking it works"
+  }
+}
+
+settings {
+  encodeUrl: true
+}
