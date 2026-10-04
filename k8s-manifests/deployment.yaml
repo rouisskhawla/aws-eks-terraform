@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name:  task-api
-        image: 558073272056.dkr.ecr.us-east-1.amazonaws.com/aws-eks-terraform:46eb738f9820cfd627d5558d75afcacadf8745b2
+        image: 558073272056.dkr.ecr.us-east-1.amazonaws.com/aws-eks-terraform:35c29f8ae2c82dd82fb18bf3b9b5a373aecb3c28
         ports:
         - containerPort: 8000
         env:
