@@ -305,3 +305,30 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 # or, on some shells:
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 --decode
 ```
+
+### Bootstrapping `external-secrets`/`argocd` on a completely fresh cluster
+
+`external-secrets` and `argocd` both define `kubernetes_manifest` resources (`ClusterSecretStore`/`ExternalSecret`, the ArgoCD `Application`) whose CRDs are installed by their *own* Helm release in the same root. On a cluster with zero history, even `terraform plan` fails validating those resources, the CRD schema it needs to check against doesn't exist yet. Fastest way through it is bootstrapping locally once, then letting CI take over normally from there:
+
+```bash
+# 1. Grant your local IAM identity temporary cluster access 
+aws sts get-caller-identity   # note the Arn
+aws eks create-access-entry --cluster-name aws-eks-terraform --principal-arn <your-local-arn> --type STANDARD --region us-east-1
+aws eks associate-access-policy --cluster-name aws-eks-terraform --principal-arn <your-local-arn> \
+  --policy-arn arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy --access-scope type=cluster --region us-east-1
+
+# 2. Point kubectl/the Terraform kubernetes provider at the cluster
+aws eks update-kubeconfig --region us-east-1 --name aws-eks-terraform
+
+# 3. Two-phase apply, both roots (installs the CRDs, then the custom resources that depend on them)
+cd terraform/external-secrets && terraform init \
+  && terraform apply -target=helm_release.aws_eso -auto-approve && terraform apply -auto-approve
+
+cd ../argocd && terraform init \
+  && terraform apply -target=helm_release.argocd -auto-approve && terraform apply -auto-approve
+
+# 4. Revoke the temporary grant, it's unmanaged by Terraform and stays overly broad if left in place
+aws eks delete-access-entry --cluster-name aws-eks-terraform --principal-arn <your-local-arn>
+```
+
+After this, re-run the CI Terraform pipeline, `external-secrets-plan`/`argocd-plan` now succeed normally, since the CRDs they validate against already exist. This is a one-time step per fresh cluster build, not something needed on every push, avoid running it at the same time CI is applying the same roots, since both share the same S3 state with native locking.
