@@ -4,6 +4,13 @@ A production style deployment of a small FastAPI CRUD API to Amazon EKS, built f
 
 The goal was to build the real thing end to end, hit the real problems that only show up once infrastructure actually runs, and fix them properly.
 
+## Workflows
+
+[![CI/CD](https://github.com/rouisskhawla/aws-eks-terraform/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/rouisskhawla/aws-eks-terraform/actions/workflows/ci-cd.yml)
+[![CI/CD ArgoCD](https://github.com/rouisskhawla/aws-eks-terraform/actions/workflows/ci-cd-argocd.yml/badge.svg)](https://github.com/rouisskhawla/aws-eks-terraform/actions/workflows/ci-cd-argocd.yml)
+[![Terraform](https://github.com/rouisskhawla/aws-eks-terraform/actions/workflows/terraform.yml/badge.svg)](https://github.com/rouisskhawla/aws-eks-terraform/actions/workflows/terraform.yml)
+[![Terraform Destroy](https://github.com/rouisskhawla/aws-eks-terraform/actions/workflows/terraform-destroy.yml/badge.svg)](https://github.com/rouisskhawla/aws-eks-terraform/actions/workflows/terraform-destroy.yml)
+
 For the full infrastructure architecture (all five Terraform state roots, apply/destroy order, IAM/IRSA authentication model, and the debugging lessons), see **[`terraform/README.md`](./terraform/README.md)**. This file covers the project as a whole: the app, both CI/CD paths, and how everything fits together operationally.
 
 ## What's actually running
