@@ -228,25 +228,6 @@ Create a **fine-grained personal access token** with:
 export GITHUB_TOKEN="github_pat_..."
 ```
 
-### Cluster health checks
-
-```bash
-# Confirm AWS CLI is authenticated
-aws sts get-caller-identity
-
-# Point kubectl at the cluster
-aws eks update-kubeconfig --region us-east-1 --name aws-eks-terraform
-
-# Nodes ready?
-kubectl get nodes
-
-# All pods, all namespaces
-kubectl get pods -A
-
-# EKS cluster details
-aws eks describe-cluster --region us-east-1 --name aws-eks-terraform
-```
-
 **AWS Load Balancer Controller specifically:**
 
 ```bash
@@ -332,3 +313,22 @@ aws eks delete-access-entry --cluster-name aws-eks-terraform --principal-arn <yo
 ```
 
 After this, re-run the CI Terraform pipeline, `external-secrets-plan`/`argocd-plan` now succeed normally, since the CRDs they validate against already exist. This is a one-time step per fresh cluster build, not something needed on every push, avoid running it at the same time CI is applying the same roots, since both share the same S3 state with native locking.
+
+### Cluster health checks
+
+```bash
+# Confirm AWS CLI is authenticated
+aws sts get-caller-identity
+
+# Point kubectl at the cluster
+aws eks update-kubeconfig --region us-east-1 --name aws-eks-terraform
+
+# Nodes ready?
+kubectl get nodes
+
+# All pods, all namespaces
+kubectl get pods -A
+
+# EKS cluster details
+aws eks describe-cluster --region us-east-1 --name aws-eks-terraform
+```
