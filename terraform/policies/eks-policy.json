@@ -1,0 +1,29 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "eks:CreateCluster",
+                "eks:DeleteCluster",
+                "eks:Describe*",
+                "eks:UpdateClusterConfig",
+                "eks:UpdateClusterVersion",
+                "eks:CreateNodegroup",
+                "eks:DeleteNodegroup",
+                "eks:UpdateNodegroupConfig",
+                "eks:UpdateNodegroupVersion",
+                "eks:TagResource",
+                "eks:UntagResource",
+                "eks:List*",
+                "eks:AssociateAccessPolicy",
+                "eks:DisassociateAccessPolicy",
+                "eks:CreateAccessEntry",
+                "eks:DeleteAccessEntry",
+                "eks:UpdateAccessEntry",
+                "eks:*Addon*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

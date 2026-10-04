@@ -12,8 +12,34 @@ env:
   AWS_REGION: us-east-1
 
 jobs:
+  delete-ingress:
+    name: Delete Ingress
+    runs-on: [self-hosted, terraform]
+    permissions:
+      id-token: write
+      contents: read
+    environment: infra-apply
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.TERRAFORM_APPLY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-skip-session-tagging: true
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name aws-eks-terraform --region ${{ env.AWS_REGION }}
+
+      - name: Delete Ingress
+        run: kubectl delete ingress task-api-ingress --ignore-not-found=true
+
+      - name: Wait for deprovision
+        run: sleep 60
+
   destroy-argocd:
-    name: Destroy ArgoCD 
+    name: Destroy ArgoCD
+    needs: delete-ingress
+    if: needs.delete-ingress.result == 'success'
     runs-on: [self-hosted, terraform]
     permissions:
       id-token: write

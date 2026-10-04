@@ -1,0 +1,64 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "IAMRoleManagement",
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "iam:Get*",
+                "iam:UpdateRole",
+                "iam:TagRole",
+                "iam:UntagRole",
+                "iam:*RolePolicy",
+                "iam:List*",
+                "iam:DeleteServiceLinkedRole"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "OIDCProviderManagement",
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateOpenIDConnectProvider",
+                "iam:DeleteOpenIDConnectProvider",
+                "iam:TagOpenIDConnectProvider",
+                "iam:UpdateOpenIDConnectProviderThumbprint",
+                "iam:UntagOpenIDConnectProvider"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "PassEKSRoles",
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                "arn:aws:iam::558073272056:role/aws-eks-terraform-eks-cluster-role",
+                "arn:aws:iam::558073272056:role/aws-eks-terraform-eks-node-role",
+                "arn:aws:iam::558073272056:role/aws-eks-terraform-cloudwatch-observability-irsa"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "iam:PassedToService": "eks.amazonaws.com"
+                }
+            }
+        },
+        {
+            "Sid": "AllowLocalUserCreateSLR",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": [
+                        "eks.amazonaws.com",
+                        "eks-nodegroup.amazonaws.com"
+                    ]
+                }
+            }
+        }
+    ]
+}
